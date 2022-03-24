@@ -31,7 +31,7 @@ public class PlayerAgent extends Agent
     Behaviour waitForReferee = new CyclicBehaviour(this) {
             @Override
             public void action() {
-                System.out.println(getAID().getName() + " waiting for referee message.");
+                System.out.println(getAID().getLocalName() + " waiting for referee message.");
 
                 ACLMessage rcv = receive();
 

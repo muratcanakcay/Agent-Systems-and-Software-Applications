@@ -6,12 +6,18 @@ import jade.core.behaviours.OneShotBehaviour;
 import jade.lang.acl.ACLMessage;
 
 import java.util.ArrayList;
+import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.List;
+
+import static java.lang.System.in;
 
 public class RefereeAgent extends Agent
 {
+    public int gameCount = 0;
     public int readyPlayers = 0;
-    public List<String> players = new ArrayList<>();
+    Hashtable<String, ArrayList<String>> players = new Hashtable<String, ArrayList<String>>();
+    //public List<String> players = new ArrayList<>();
 
     @Override
     protected void setup()
@@ -34,14 +40,14 @@ public class RefereeAgent extends Agent
                         if (rcv.getContent().contains("is ready"))
                         {
                             System.out.println(rcv.getSender().getName() + " is ready! - " + (readyPlayers+1) + " player(s) ready!\"");
-                            players.add(rcv.getSender().getName());
+                            players.put(rcv.getSender().getLocalName(), new ArrayList<String>());
                             readyPlayers += 1;
                         }
                         break;
                 }
             }
 
-            if (readyPlayers == 2)
+            if (readyPlayers == 2) // could also use a timer to wait when there's unknown number of players
             {
                 System.out.println("Both players are ready!");
                 removeBehaviour(this);
@@ -49,6 +55,7 @@ public class RefereeAgent extends Agent
                 addBehaviour(PlayGame);
                 System.out.println(getAID().getName() + " Added PlayGame behaviour!");
 
+                System.out.println(getAID().getName() + " Let's start the game!");
             }
 
             block(1000);
@@ -58,21 +65,59 @@ public class RefereeAgent extends Agent
     Behaviour PlayGame = new CyclicBehaviour(this) {
         @Override
         public void action() {
+            for (String player : players.keySet()) {
+                requestResult(player);
+            }
 
-            /*System.out.println(getAID().getName() + " PlayGame!");
+            int resultsCount = 0;
 
-            ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-            msg.addReceiver(new AID("Referee", AID.ISLOCALNAME));
-            msg.setLanguage("English");
-            msg.setOntology("Ready-to_Play--Ontology");
-            msg.setContent(getAID().getName()+ " is ready to play!");
-            System.out.println(getAID().getName() + " is sending 'I'm ready to play' message!");
+            while (resultsCount < players.size()) // don't use while???
+            {
+                ACLMessage rcv = receive();
 
-            send(msg);*/
+                if (rcv != null)
+                {
+                    switch(rcv.getPerformative())
+                    {
+                        case ACLMessage.INFORM:
+                            if(rcv.getOntology().equals("Result-Ontology"))
+                            {
+                                System.out.println(rcv.getSender().getLocalName() + " sent " + rcv.getContent());
+                                players.get(rcv.getSender().getLocalName()).add(rcv.getContent());
+                                resultsCount++;
+                            }
+                            break;
+                    }
+                }
+            }
+
+            for (String key : players.keySet()) {
+                var results = players.get(key);
+                System.out.println(key + " results: " + results);
+            }
+
+            gameCount++;
+
+            if(gameCount==5)
+            {
+                removeBehaviour(this);
+            }
 
             block(1000);
         }
     };
+
+    void requestResult(String player)
+    {
+        ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
+        msg.addReceiver(new AID(player, AID.ISLOCALNAME));
+        msg.setLanguage("English");
+        msg.setOntology("Play-Ontology");
+        msg.setContent("Play now!");
+        System.out.println(getAID().getName() + " is sending 'Play now!' message to " + player);
+
+        send(msg);
+    }
 
     @Override
     protected void takeDown()

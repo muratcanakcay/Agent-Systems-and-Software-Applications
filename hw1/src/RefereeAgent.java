@@ -95,7 +95,7 @@ public class RefereeAgent extends Agent
         msg.setContent("Play now!");
 
         System.out.println();
-        System.out.println(getAID().getName() + " is sending 'Play now!' message to " + player);
+        System.out.println(getAID().getLocalName() + " is sending 'Play now!' message to " + player);
         System.out.println();
 
         send(msg);
@@ -116,7 +116,7 @@ public class RefereeAgent extends Agent
                     case ACLMessage.INFORM:
                         if(rcv.getOntology().equals("Answer-Ontology"))
                         {
-                            System.out.println(rcv.getSender().getLocalName() + " sent " + rcv.getContent());
+                            System.out.println(getAID().getLocalName() + " received answer: \"" + rcv.getContent() + "\" from " + rcv.getSender().getLocalName() );
                             players.get(rcv.getSender().getLocalName()).add(rcv.getContent());
                             answersCount++;
                         }

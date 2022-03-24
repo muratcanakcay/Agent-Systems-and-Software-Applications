@@ -20,9 +20,9 @@ public class PlayerAgent extends Agent
             ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
             msg.addReceiver(new AID("Referee", AID.ISLOCALNAME));
             msg.setLanguage("English");
-            msg.setOntology("Ready-to_Play--Ontology");
-            msg.setContent(getAID().getName()+ " is ready to play!");
-            System.out.println(getAID().getName() + " is sending 'I'm ready to play' message!");
+            msg.setOntology("Ready-to-Play-Ontology");
+            msg.setContent(getAID().getLocalName()+ " is ready to play!");
+            System.out.println(getAID().getLocalName() + " is sending 'I'm ready to play' message!");
 
             send(msg);
         }
@@ -40,7 +40,7 @@ public class PlayerAgent extends Agent
                     switch(rcv.getPerformative())
                     {
                         case ACLMessage.REQUEST:
-                            System.out.println(getAID().getName() + " received message: " + rcv.getContent());
+                            System.out.println(getAID().getLocalName() + " received message: " + rcv.getContent());
                             if(rcv.getContent().equals("Play now!"))
                             {
                                 String result = play();
@@ -56,19 +56,19 @@ public class PlayerAgent extends Agent
             }
         };
 
-    String play()
+    String play() //TODO: implement answer logic
     {
         return "paper";
     }
 
-    void sendResult(String result)
+    void sendResult(String answer)
     {
         ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
         msg.addReceiver(new AID("Referee", AID.ISLOCALNAME));
         msg.setLanguage("English");
-        msg.setOntology("Result-Ontology");
-        msg.setContent(result);
-        System.out.println(getAID().getLocalName() + " is sending result: " + result);
+        msg.setOntology("Answer-Ontology");
+        msg.setContent(answer);
+        System.out.println(getAID().getLocalName() + " is sending answer: " + answer);
 
         send(msg);
     }
@@ -76,7 +76,7 @@ public class PlayerAgent extends Agent
     @Override
     protected void takeDown()
     {
-        System.out.println("Goodbye, world!" + " I was " + getAID().getName());
+        System.out.println("Goodbye, world!" + " I was " + getAID().getLocalName());
         super.takeDown();
     }
 }

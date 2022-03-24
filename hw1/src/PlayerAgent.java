@@ -5,8 +5,12 @@ import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.lang.acl.ACLMessage;
 
+import java.util.Random;
+
 public class PlayerAgent extends Agent
 {
+    Random rng = new Random();
+
     @Override
     protected void setup()
     {
@@ -58,7 +62,19 @@ public class PlayerAgent extends Agent
 
     String play() //TODO: implement answer logic
     {
-        return "paper";
+        int choice = rng.nextInt(3);
+
+        switch(choice)
+        {
+            case 0:
+                return "paper";
+            case 1:
+                return "rock";
+            case 2:
+                return "scissors";
+        }
+
+        return "";
     }
 
     void sendResult(String answer)

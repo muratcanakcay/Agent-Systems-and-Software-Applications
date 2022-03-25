@@ -28,7 +28,7 @@ public class RefereeAgent extends Agent
         {
             waitForReadyPlayer();
 
-            if (readyPlayers == 2) // could also use a timer to wait when there's unknown number of players
+            if (readyPlayers == 2) // TODO: implement a timer to wait when there's unknown number of players
             {
                 allPlayersReady(this);
             }
@@ -86,10 +86,12 @@ public class RefereeAgent extends Agent
             displayScores();
 
             gameCount++;
-            if(gameCount==5)
+            if(gameCount==5) // TODO: INFORM players that game is over
             {
                 System.out.println(getAID().getLocalName() + " GAME OVER!");
+                // TODO: display which player won the game
                 removeBehaviour(this);
+                // TODO: kill refereeAgent when game is over
             }
         }
     };

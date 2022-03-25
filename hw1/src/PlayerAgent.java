@@ -40,7 +40,7 @@ public class PlayerAgent extends Agent
                 ACLMessage rcv = receive();
 
                 if (rcv != null)
-                {
+                { // TODO: kill agent when GAME OVER notification is received from referee
                     switch(rcv.getPerformative())
                     {
                         case ACLMessage.REQUEST:

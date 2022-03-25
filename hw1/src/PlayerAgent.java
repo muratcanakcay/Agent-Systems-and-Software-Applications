@@ -45,7 +45,7 @@ public class PlayerAgent extends Agent
                     {
                         case ACLMessage.REQUEST:
                             System.out.println(getAID().getLocalName() + " received message: " + rcv.getContent());
-                            if(rcv.getContent().equals("Play now!"))
+                            if(rcv.getOntology().equals("Play-Ontology"))
                             {
                                 String result = play();
                                 sendResult(result);
@@ -60,7 +60,7 @@ public class PlayerAgent extends Agent
             }
         };
 
-    String play() //TODO: implement answer logic
+    String play()
     {
         int choice = rng.nextInt(3);
 
@@ -70,11 +70,9 @@ public class PlayerAgent extends Agent
                 return "paper";
             case 1:
                 return "rock";
-            case 2:
+            default:
                 return "scissors";
         }
-
-        return "";
     }
 
     void sendResult(String answer)

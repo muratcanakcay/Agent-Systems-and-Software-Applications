@@ -1,0 +1,14 @@
+<html>
+  <head>
+    <title>{{ agent.jid }}</title>
+  </head>
+  <body>
+     I am {{ agent.jid }}
+     <h2>My behaviours:</h2>
+     <ol>
+     {% for b in behaviours %}
+         <li> {{ b }} </li>
+     {% endfor %}
+     </ol>
+  </body>
+</html>

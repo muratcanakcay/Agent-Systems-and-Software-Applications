@@ -17,7 +17,7 @@ class SenderAgent(Agent):
             await self.send(msg)
             print("Message sent!")
 
-            self.kill(exit_code=0)
+            self.kill(exit_code=0) #kills behaviour
             # await self.agent.stop()
 
         async def on_end(self):

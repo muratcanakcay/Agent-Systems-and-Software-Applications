@@ -2,13 +2,15 @@ import asyncio
 from spade.agent import Agent
 from spade.behaviour import OneShotBehaviour
 from spade import quit_spade
+import time
 
 
 class DummyAgent(Agent):
     class ThinkingBehaviour(OneShotBehaviour):
         async def run(self):
             print("I am thinking...")
-            await asyncio.sleep(5)
+            #time.sleep(5) blocks the entire agent
+            await asyncio.sleep(5) #blocks only this behaviour
             print("Thinking has finished")
 
     class WaitingBehav(OneShotBehaviour):

@@ -86,15 +86,29 @@ public class RefereeAgent extends Agent
             displayScores();
 
             gameCount++;
-            if(gameCount==5) // TODO: INFORM players that game is over
+            if(gameCount==5)
             {
                 System.out.println(getAID().getLocalName() + " GAME OVER!");
-                // TODO: display which player won the game
-                removeBehaviour(this);
-                // TODO: kill refereeAgent when game is over
+                announceGameOver();
+                // TODO: announce winner
+                doDelete();
             }
         }
     };
+
+    private void announceGameOver() {
+        for (String player : players.keySet())
+        {
+            ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+            msg.addReceiver(new AID(player, AID.ISLOCALNAME));
+            msg.setLanguage("English");
+            msg.setOntology("Game-Over-Ontology");
+            msg.setContent("Game over!");
+
+            System.out.println(getAID().getLocalName() + " is sending 'Game over!' message to " + player);
+            send(msg);
+        }
+    }
 
     void requestAnswers()
     {

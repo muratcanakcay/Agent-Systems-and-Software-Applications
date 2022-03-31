@@ -50,8 +50,11 @@ public class PlayerAgent extends Agent
                                 String result = play();
                                 sendResult(result);
                             }
-
                             break;
+                        case ACLMessage.INFORM:
+                            if (rcv.getOntology() == "Game-Over-Ontology") {
+                                doDelete();
+                            }
                     }
                 }
 

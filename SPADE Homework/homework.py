@@ -1,4 +1,6 @@
 import time
+import datetime
+import random
 from spade.agent import Agent
 from spade import behaviour
 from spade.message import Message
@@ -8,59 +10,62 @@ class Player(Agent):
     name = None
     otherPlayerName = None
 
-    class KickOffBehaviour(behaviour.OneShotBehaviour):
+    class CountingBehaviour(behaviour.PeriodicBehaviour):
         async def on_start(self):
             print("KickOff...")
-            self.name = self.get('name')
-            self.otherPlayerName = self.get('otherPlayerName')
-        
+            self.counter = 0
+
         async def run(self):
             waitForMessage = False
-            if (self.name == "1"):
+            if (self.agent.name == "1"):
                 waitForMessage = True;
 
             while True:
                 if (waitForMessage):
-                    print(f"Player{self.name} is waiting for message from Player{self.otherPlayerName}...")
+                    print(f"Player{self.agent.name} is waiting for message from Player{self.agent.otherPlayerName}...")
                     message_wait_timeout = 60
 
                     msg = await self.receive(timeout=60)
                     if msg:
-                        print(f"Player{self.name} received message: {msg.body}")
+                        print(f"[{self.counter}] Player{self.agent.name} received message: {msg.body}")
                     else:
-                        print(f"Player{self.name} Did not received any message after: {message_wait_timeout} seconds")
+                        print(f"Player{self.agent.name} Did not received any message after: {message_wait_timeout} seconds")
+
+                                        
                     
-                    if (self.name == "1"):
+                    if (self.agent.name == "1"):
                         waitForMessage = False
-                    if (self.name == "2"):
+                    else:
                         break
                 else:                
-                    recepient = "mca@shad0w.io/" + self.otherPlayerName
-                    msg = Message(to=recepient)
+                    recipient = "mca@shad0w.io/" + self.agent.otherPlayerName
+                    msg = Message(to=recipient)
 
                     msg.set_metadata("performative", "inform")
-                    msg.body = f"Hello World from Agent {self.name} to {self.otherPlayerName}"
+                    msg.body = f"Hello World from Agent {self.agent.name} to {self.agent.otherPlayerName}"
 
                     await self.send(msg)
-                    print(f"Player{self.name} sent message to {recepient}")
-
-                    if (self.name == "1"):
-                        break
-                    if (self.name == "2"):
+                    print(f"Player{self.agent.name} sent message to {recipient}")
+                    
+                    if (self.agent.name == "2"):
                         waitForMessage = True
+                    else:
+                        break
             
-            
-            self.kill(exit_code=0) #kills behaviour
-            await self.agent.stop()
+            if self.counter == 5:
+                self.kill(exit_code=0) #kills behaviour
+            self.counter += 1            
 
         async def on_end(self):
-            print("KickOffBehaviour finished with exit code {self.exit_code}.")
+            print(f"KickOffBehaviour finished with exit code {self.exit_code}.")
+            await self.agent.stop()
 
     async def setup(self):
         self.name = self.get('name')
         self.otherPlayerName = self.get('otherPlayerName')
-        print(f"PlayerAgent{self.name} started. Other player is {self.otherPlayerName}!")
-        b = self.KickOffBehaviour()
+        print(f"Player{self.name} started. Other player is Player{self.otherPlayerName}!")
+        start_at = datetime.datetime.now() + datetime.timedelta(seconds=5)
+        b = self.CountingBehaviour(period = 3, start_at=start_at)
         self.add_behaviour(b)
 
 if __name__ == "__main__":
@@ -78,7 +83,7 @@ if __name__ == "__main__":
 
     while player1.is_alive() or player2.is_alive():
         try:
-            time.sleep(100)
+            time.sleep(1)
         except KeyboardInterrupt:
             player1.stop()
             player2.stop()

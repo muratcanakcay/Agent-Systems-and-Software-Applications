@@ -1,6 +1,5 @@
 import asyncio
 import json
-import time
 import datetime
 import random
 from spade.agent import Agent
@@ -79,25 +78,3 @@ class Player(Agent):
         start_at = datetime.datetime.now() + datetime.timedelta(seconds=5)
         b = self.CountingBehaviour(period = 1, start_at=start_at)
         self.add_behaviour(b)
-
-if __name__ == "__main__":
-    player1 = Player("mca@shad0w.io/1", "12345678")
-    player1.set("name", "1")
-    player1.set("otherPlayerName", "2")
-
-    future = player1.start()
-    future.result()
-
-    player2 = Player("mca@shad0w.io/2", "12345678")
-    player2.set("name", "2")
-    player2.set("otherPlayerName", "1")
-    player2.start()
-
-    while player1.is_alive() or player2.is_alive():
-        try:
-            time.sleep(1)
-        except KeyboardInterrupt:
-            player1.stop()
-            player2.stop()
-            break    
-    print("Agents finished")

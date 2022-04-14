@@ -10,12 +10,14 @@ from spade.template import Template
 class Player(Agent):
     name = None
     otherPlayerName = None
+    distractionChance : int = 100
 
     class CountingBehaviour(behaviour.PeriodicBehaviour):
         async def on_start(self):
             print("KickOff...")
             self.count = 0
             self.message_wait_timeout = 60
+            self.expected = 0
 
         async def run(self):
             waitForMessage = False
@@ -29,18 +31,32 @@ class Player(Agent):
                     print(f"Player{self.agent.name} is waiting for message from Player{self.agent.otherPlayerName}...")
                     
 
-                    msg = await self.receive(timeout=self.message_wait_timeout)
-                    if msg:
-                        print(f"[{self.count}] Player{self.agent.name} received message: {msg.body}")
-                        body = json.loads(msg.body)
-                        self.count = int(body["count"]) + 1
-                    else:
-                        print(f"Player{self.agent.name} Did not receive any message after: {self.message_wait_timeout} seconds")
-                        self.kill(exit_code=1)
-
-
-                                        
-                    
+                    while True:
+                        msg = await self.receive(timeout=self.message_wait_timeout)
+                        if msg:
+                            print(f"[{self.count}] Player{self.agent.name} received message: {msg.body}")
+                            body = json.loads(msg.body)
+                            receivedCount = int(body["count"])
+                            print(msg.sender)
+                            
+                            if str(msg.sender) == "mca@shad0w.io/3": # msg received from spyAgent
+                                print(f"{self.agent.name} received {receivedCount} from SPY!")
+                                if random.randrange(1, 101) < self.agent.distractionChance:
+                                    print(f"Player{self.agent.name} got DISTRACTED!")
+                                    self.expected = self.count + 2
+                                    self.count = receivedCount + 1
+                                    msg = await self.receive(timeout=self.message_wait_timeout) # wait for actual message from other player and discard it
+                                    if msg:
+                                        print(f"[{self.count}] Player{self.agent.name} received message: {msg.body} and discarding it!")
+                                        break
+                                else:
+                                     continue # wait for actual message from other player and use it
+                            else: # message received from other player
+                                 self.count = receivedCount + 1
+                                 break                            
+                        else:
+                            print(f"Player{self.agent.name} Did not receive any message after: {self.message_wait_timeout} seconds")
+                            self.kill(exit_code=1)
                     
                     if (self.agent.name == "1"):
                         waitForMessage = False
@@ -64,8 +80,8 @@ class Player(Agent):
                     else:
                         break
             
-            if self.count >= 15:
-                self.kill(exit_code=0)            
+            # if self.count >= 15:
+            #     self.kill(exit_code=0)            
 
         async def on_end(self):
             print(f"CountingBehaviour finished with exit code {self.exit_code}.")
@@ -75,6 +91,6 @@ class Player(Agent):
         self.name = self.get('name')
         self.otherPlayerName = self.get('otherPlayerName')
         print(f"Player{self.name} started. Other player is Player{self.otherPlayerName}!")
-        start_at = datetime.datetime.now() + datetime.timedelta(seconds=5)
+        start_at = datetime.datetime.now() #+ datetime.timedelta(seconds=5)
         b = self.CountingBehaviour(period = 1, start_at=start_at)
         self.add_behaviour(b)

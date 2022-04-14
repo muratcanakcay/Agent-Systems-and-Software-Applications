@@ -7,7 +7,6 @@ from spade.template import Template
 from playerAgent import Player
 from spyAgent import Spy
 
-
 if __name__ == "__main__":
     player1 = Player("mca@shad0w.io/1", "12345678")
     player1.set("name", "1")

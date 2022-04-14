@@ -27,9 +27,9 @@ class SenderAgent(Agent):
     class RecvBehav(OneShotBehaviour):
         async def run(self):
             print("RecvBehav running")
-            message_wait_timeout = 10
+            message_wait_timeout = 30
 
-            msg = await self.receive(timeout=10)
+            msg = await self.receive(timeout=30)
             if msg:
                 print("Response received with content: {}".format(msg.body))
             else:

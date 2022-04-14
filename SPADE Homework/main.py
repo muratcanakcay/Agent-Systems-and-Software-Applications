@@ -1,9 +1,4 @@
 import time
-from spade.agent import Agent
-from spade import behaviour
-from spade.message import Message
-from spade.template import Template
-
 from playerAgent import Player
 from spyAgent import Spy
 

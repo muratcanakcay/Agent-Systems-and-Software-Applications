@@ -14,9 +14,9 @@ class Player(Agent):
 
     class CountingBehaviour(behaviour.PeriodicBehaviour):
         async def run(self):
-            waitForMessage = False
-            if (self.agent.name == "1"):
-                waitForMessage = True;
+            waitForMessage = True
+            if (self.agent.name == "2"):
+                waitForMessage = False;
 
             # Player1 starts waiting and then sends reply
             # Player2 sends message and then starts waiting
@@ -61,12 +61,12 @@ class Player(Agent):
                     
                     if (self.agent.name == "1"):
                         waitForMessage = False
-                    else:
+                    else: #player2
                         break
-                else:                
+
+                else: #sendReply
                     await asyncio.sleep(1) # so the agent waits a little before replying
-                    recipient = "mca@shad0w.io/" + self.agent.otherPlayerName
-                    msg = Message(to=recipient)
+                    msg = Message(to="mca@shad0w.io/" + self.agent.otherPlayerName)
                     msg.set_metadata("performative", "inform")
                     msg.body = json.dumps({"count" : self.agent.count})
                     await self.send(msg)
@@ -75,7 +75,7 @@ class Player(Agent):
                     
                     if (self.agent.name == "2"):
                         waitForMessage = True
-                    else:
+                    else: #player1
                         break
 
         async def on_end(self):

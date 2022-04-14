@@ -28,6 +28,6 @@ if __name__ == "__main__":
         try:
             time.sleep(1)
         except KeyboardInterrupt:
-            senderagent.stop()
+            agent.stop()
             break
     print("Agents finished")

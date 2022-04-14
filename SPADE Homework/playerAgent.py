@@ -1,86 +1,34 @@
-import asyncio
-import json
-import random
 from spade.agent import Agent
-from spade import behaviour
-from spade.message import Message
+from spade.behaviour import FSMBehaviour, State
+from playerAction import playerAction
 
-DEBUG = False  # used for turning on/off informative print statements
+COUNTING = "COUNTING"
+DISTRACTED = "DISTRACTED"
+
+class PlayerBehaviour(FSMBehaviour):
+    async def on_end(self):
+        print(f"PlayerBehaviour finished with exit code {self.exit_code}.")
+        await self.agent.stop()
+
+class Counting(State):
+    async def run(self):
+        isDistracted = False        
+        while not isDistracted:
+            isDistracted = await playerAction(self, False)
+        
+        self.set_next_state(DISTRACTED)
+
+class Distracted(State):
+    async def run(self):
+        print(f"Player{self.agent.name}'s STATE CHANGED TO DISTRACTED")
+        while True:
+            if await playerAction(self, False):
+                print(f"Player{self.agent.name} is ALREADY in DISTRACTED STATE")
 
 class Player(Agent):
     name = None
     otherPlayerName = None
     distractionChance : int = 50  # % chance of the player getting distracting
-
-    class CountingBehaviour(behaviour.PeriodicBehaviour):
-        async def run(self):
-            waitForMessage = True
-            if (self.agent.name == "2"):
-                waitForMessage = False;
-
-            # Player1 starts waiting and then sends reply
-            # Player2 sends message and then starts waiting
-            while True:
-                if (waitForMessage):
-                    if DEBUG : print(f"Player{self.agent.name} is waiting for message from Player{self.agent.otherPlayerName}...")
-
-                    while True:
-                        msg = await self.receive(timeout=self.agent.message_wait_timeout)
-                        if msg:
-                            if DEBUG : print(f"[{self.agent.count}] Player{self.agent.name} received message: {msg.body}")
-                            body = json.loads(msg.body)
-                            receivedCount = int(body["count"])
-                            
-                            if str(msg.sender) == "mca@shad0w.io/3":
-                                # msg received from spyAgent, check if player got distracted
-                                if random.randrange(1, 101) < self.agent.distractionChance:
-                                    print(f"Player{self.agent.name} got DISTRACTED!")
-                                    self.agent.count = receivedCount + 1
-                                    
-                                    # wait for actual message from other player and discard it
-                                    msg = await self.receive(timeout=self.agent.message_wait_timeout)
-                                    if msg:
-                                        if DEBUG : print(f"[{self.agent.count}] Player{self.agent.name} received message: {msg.body} and discarding it!")
-                                        break 
-                                    else:
-                                        print(f"Player{self.agent.name} Did not receive any message after: {self.agent.message_wait_timeout} seconds")
-                                        self.kill(exit_code=1)
-                                
-                                else:
-                                    if DEBUG : print(f"Player{self.agent.name} WAS NOT DISTRACTED!")
-                                    
-                                    # restart waiting for actual message from other player
-                                    continue
-
-                            else: # message received from other player (not from the spy)
-                                self.agent.count = receivedCount + 1
-                                break
-                        else:
-                            print(f"Player{self.agent.name} Did not receive any message after: {self.agent.message_wait_timeout} seconds")
-                            self.kill(exit_code=1)
-                    
-                    if (self.agent.name == "1"):
-                        waitForMessage = False
-                    else: #player2
-                        break
-
-                else: #sendReply
-                    await asyncio.sleep(1) # so the agent waits a little before replying
-                    msg = Message(to="mca@shad0w.io/" + self.agent.otherPlayerName)
-                    msg.set_metadata("performative", "inform")
-                    msg.body = json.dumps({"count" : self.agent.count})
-                    await self.send(msg)
-
-                    print(f"Player{self.agent.name} sent 'Count={self.agent.count}'")
-                    
-                    if (self.agent.name == "2"):
-                        waitForMessage = True
-                    else: #player1
-                        break
-
-        async def on_end(self):
-            print(f"CountingBehaviour finished with exit code {self.exit_code}.")
-            await self.agent.stop()
 
     async def setup(self):
         self.name = self.get('name')
@@ -89,4 +37,10 @@ class Player(Agent):
         self.count = 0
         
         print(f"Player{self.name} started.")
-        self.add_behaviour(self.CountingBehaviour(period = 1))
+
+        fsm = PlayerBehaviour()
+        fsm.add_state(name=COUNTING, state=Counting(), initial=True)
+        fsm.add_state(name=DISTRACTED, state=Distracted())
+        fsm.add_transition(source=COUNTING, dest=DISTRACTED)
+
+        self.add_behaviour(fsm)

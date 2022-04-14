@@ -6,6 +6,9 @@ from spade import behaviour
 from spade.message import Message
 from spade.template import Template
 
+def mul(x,y):
+    return x*y
+
 class Player(Agent):
     name = None
     otherPlayerName = None

@@ -10,7 +10,7 @@ DEBUG = False  # used for turning on/off informative print statements
 class Player(Agent):
     name = None
     otherPlayerName = None
-    distractionChance : int = 50
+    distractionChance : int = 50  # % chance of the player getting distracting
 
     class CountingBehaviour(behaviour.PeriodicBehaviour):
         async def run(self):
@@ -18,8 +18,8 @@ class Player(Agent):
             if (self.agent.name == "1"):
                 waitForMessage = True;
 
-            # If agent is Player1 it starts in waiting mode and then enters the receive-reply cycle
-            # If agent is Player2 it starts by sending the first message and then enters the receive-reply cycle
+            # Player1 starts waiting and then sends reply
+            # Player2 sends message and then starts waiting
             while True:
                 if (waitForMessage):
                     if DEBUG : print(f"Player{self.agent.name} is waiting for message from Player{self.agent.otherPlayerName}...")
@@ -31,7 +31,8 @@ class Player(Agent):
                             body = json.loads(msg.body)
                             receivedCount = int(body["count"])
                             
-                            if str(msg.sender) == "mca@shad0w.io/3": # msg received from spyAgent                                
+                            if str(msg.sender) == "mca@shad0w.io/3":
+                                # msg received from spyAgent, check if player got distracted
                                 if random.randrange(1, 101) < self.agent.distractionChance:
                                     print(f"Player{self.agent.name} got DISTRACTED!")
                                     self.agent.count = receivedCount + 1
@@ -40,15 +41,20 @@ class Player(Agent):
                                     msg = await self.receive(timeout=self.agent.message_wait_timeout)
                                     if msg:
                                         if DEBUG : print(f"[{self.agent.count}] Player{self.agent.name} received message: {msg.body} and discarding it!")
-                                        break
+                                        break 
+                                    else:
+                                        print(f"Player{self.agent.name} Did not receive any message after: {self.agent.message_wait_timeout} seconds")
+                                        self.kill(exit_code=1)
+                                
                                 else:
-                                    print(f"Player{self.agent.name} WAS NOT DISTRACTED!")
+                                    if DEBUG : print(f"Player{self.agent.name} WAS NOT DISTRACTED!")
                                     
                                     # restart waiting for actual message from other player
                                     continue
+
                             else: # message received from other player (not from the spy)
-                                 self.agent.count = receivedCount + 1
-                                 break
+                                self.agent.count = receivedCount + 1
+                                break
                         else:
                             print(f"Player{self.agent.name} Did not receive any message after: {self.agent.message_wait_timeout} seconds")
                             self.kill(exit_code=1)

@@ -22,7 +22,8 @@ class Distracted(State):
     async def run(self):
         print(f"Player{self.agent.name}'s STATE CHANGED TO DISTRACTED")
         while True:
-            if await playerAction(self, False):
+            isDistracted = await playerAction(self, False)
+            if isDistracted:
                 print(f"Player{self.agent.name} is ALREADY in DISTRACTED STATE")
 
 class Player(Agent):

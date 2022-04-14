@@ -139,3 +139,4 @@ replay_pid*
 
 # End of https://www.toptal.com/developers/gitignore/api/java,intellij
 hw1/APDescription.txt
+*.pyc

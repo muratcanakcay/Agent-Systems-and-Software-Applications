@@ -8,18 +8,19 @@ from spade.message import Message
 DEBUG = False  # used for turning on/off informative print statements
 
 async def playerAction(self : State, isDistracted: bool):
+    # Player1 starts waiting and then sends reply
     waitForMessage = True
+    # Player2 sends message and then starts waiting
     if (self.agent.name == "2"):
         waitForMessage = False;
 
-    # Player1 starts waiting and then sends reply
-    # Player2 sends message and then starts waiting
     while True:
         if (waitForMessage):
             if DEBUG : print(f"Player{self.agent.name} is waiting for message from Player{self.agent.otherPlayerName}...")
 
             while True:
                 msg = await self.receive(timeout=self.agent.message_wait_timeout)
+                
                 if msg:
                     if DEBUG : print(f"Player{self.agent.name} received message: {msg.body}")
                     body = json.loads(msg.body)

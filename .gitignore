@@ -141,3 +141,4 @@ replay_pid*
 hw1/APDescription.txt
 *.pyc
 SPADE Homework/instructions.txt
+SPADE Homework/periodicBehaviourTemplate.py

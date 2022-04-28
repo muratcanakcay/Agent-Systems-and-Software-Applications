@@ -16,7 +16,7 @@ async def playerAction(self : State, isDistracted: bool):
 
     while True:
         if (waitForMessage):
-            isDistracted = wait_for_message(self, isDistracted)
+            isDistracted = await wait_for_message(self, isDistracted)
             
             if (self.agent.name == "1"):
                 waitForMessage = False
@@ -24,14 +24,14 @@ async def playerAction(self : State, isDistracted: bool):
                 return isDistracted
 
         else: #sendReply
-            send_reply(self)
+            await send_reply(self)
             
             if (self.agent.name == "2"):
                 waitForMessage = True
             else: #player1
                 return isDistracted
 
-async def send_reply(self : State)
+async def send_reply(self : State):
     await asyncio.sleep(1) # so the agent waits a little before replying
     msg = Message(to="mca@shad0w.io/" + self.agent.otherPlayerName)
     msg.set_metadata("performative", "inform")
@@ -40,7 +40,7 @@ async def send_reply(self : State)
 
     print(f"Player{self.agent.name} Count={self.agent.count}")
 
-async def wait_for_message(self:State, isDistracted:bool)
+async def wait_for_message(self:State, isDistracted:bool):
     if DEBUG : print(f"Player{self.agent.name} is waiting for message from Player{self.agent.otherPlayerName}...")
     
     while True:
@@ -58,7 +58,7 @@ async def wait_for_message(self:State, isDistracted:bool)
                     # got distracted
                     print(f"Player{self.agent.name} got distracted!")
                     self.agent.count = receivedCount + 1
-                    isDistracted = true
+                    isDistracted = True
                     
                     # wait for actual message from other player and discard it
                     msg = await self.receive(timeout=self.agent.message_wait_timeout)

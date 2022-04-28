@@ -3,7 +3,10 @@ from osbrain import run_nameserver
 
 
 def reply(agent, message):
-    return 'Received ' + str(message)
+    #message= message+1
+    field = "mylist"
+    agent.log_info(f"I received {message} field {field} is equal to {message[field]}")
+    #return 'Received ' + str(message)
 
 
 if __name__ == '__main__':
@@ -16,7 +19,11 @@ if __name__ == '__main__':
     # What about Rob?
     
     for i in range(10):
-        bob.send('main', i)
+        bob.send('main', 
+        {
+            "n" : i,
+            "mylist" : [1,23,4]
+        })
         reply = bob.recv('main')
         print(reply)
 

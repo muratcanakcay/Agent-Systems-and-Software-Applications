@@ -8,6 +8,8 @@ import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
+import jade.lang.acl.ACLMessage;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,9 +50,9 @@ public class ClientAgent extends Agent
                 fe.printStackTrace();
             }
 
-            System.out.println("Client received info about:");
+            System.out.println("Client received info about GatewayAgents:");
             for (AID gatewayAgent : gatewayAgents) {
-                System.out.println(gatewayAgent);
+                System.out.println("      " + gatewayAgent);
             }
 
             if (gatewayAgents.size() == 0)
@@ -69,7 +71,18 @@ public class ClientAgent extends Agent
         @Override
         public void action() {
 
+            ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
+            for (AID gatewayAgent : gatewayAgents) {
+                cfp.addReceiver(gatewayAgent);
+            }
+            cfp.setContent("kebap");
+            myAgent.send(cfp);
+            System.out.println("[ClientAgent] sent proposals");
 
+            block(2000);
+
+            myAgent.send(cfp);
+            System.out.println("[ClientAgent] sent proposals again");
 
 
 

@@ -1,8 +1,14 @@
 import jade.core.Agent;
+import jade.core.behaviours.Behaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.NotUnderstoodException;
+import jade.domain.FIPAAgentManagement.RefuseException;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
+import jade.proto.ProposeResponder;
 
 public class GatewayAgent extends Agent
 {
@@ -25,6 +31,33 @@ public class GatewayAgent extends Agent
             DFService.register(this, dfd);
         } catch (FIPAException fe) {
             fe.printStackTrace();
+        }
+
+        addBehaviour(respondCfp);
+
+
+    };
+
+    Behaviour respondCfp = new ProposeResponder(this, MessageTemplate.MatchAll()) {
+        //@Override
+        protected ACLMessage prepareResponse(ACLMessage propose)
+        {
+            System.out.println("[GatewayAgent] " + getAID().getName() + " received proposal ");
+            return null;
+
+//            switch (mood) {
+//                case HAPPY:
+//                    log("I'm happy");
+//                    ACLMessage accept = propose.createReply();
+//                    accept.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
+//                    accept.setContent("Yes, it would be nice");
+//                    return accept;
+//                case DISTRACTED:
+//                    log("I'm hurt");
+//                    throw new NotUnderstoodException("I didn't understand you");
+//                default:
+//                    return null;
+//            }
         }
     };
 

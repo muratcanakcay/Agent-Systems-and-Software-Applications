@@ -2,21 +2,42 @@ import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.CyclicBehaviour;
+import jade.core.behaviours.TickerBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
 import jade.wrapper.AgentContainer;
 import jade.wrapper.AgentController;
 
+import java.util.Arrays;
+
 public class ManagerAgent extends Agent
 {
+    String restaurantName = null; // name of the restaurant
+    String restaurantCuisine = null; // cuisine of the restaurant
+    Integer restaurantMenu = null; // menu of the restaurant
+    Integer restaurantWorkingHours = null; // working hours of the restaurant
+    Float restaurantPriceMultiplier = null; // price multiplier of the restaurant
     @Override
     protected void setup() {
         Object[] args = getArguments();
-        String restaurantName = (String)args[0]; // name of the restaurant
-        String restaurantCuisine = (String)args[1]; // cuisine of the restaurant
-        String restaurantMenu = (String)args[2]; // menu of the restaurant
+        if (args.length < 5 )
+        {
+            System.out.println("[ERRROR] [ManagerAgent] " + getAID().getName() + " Error in initial arguments");
+        }
 
-        System.out.println("ManagerAgent " + getAID().getName() + " started with arguments " + restaurantName + " " + restaurantCuisine + " " + restaurantMenu);
+        restaurantName = (String)args[0]; // name of the restaurant
+        restaurantCuisine = (String)args[1]; // cuisine of the restaurant
+        restaurantMenu = Integer.parseInt((String)args[2]); // menu of the restaurant
+        restaurantWorkingHours = Integer.parseInt((String)args[3]); // working hours of the restaurant
+        restaurantPriceMultiplier = Float.parseFloat((String)args[4]); // price multiplier of the restaurant
+
+        if (restaurantName == null || restaurantCuisine  == null || restaurantMenu == null || restaurantWorkingHours == null || restaurantPriceMultiplier <= 0)
+        {
+            System.out.println("[ERROR] [ManagerAgent] " + getAID().getName() + " Error in initial arguments");
+        }
+
+        System.out.println("[ManagerAgent] " + getAID().getName() + " started with arguments " + restaurantName + " "
+                + restaurantCuisine + " " + restaurantMenu  + " " + restaurantWorkingHours + " " + restaurantPriceMultiplier);
 
         // create the Gateway agent for this restaurant
         Object[] gatewayArgs = new Object[2];
@@ -31,14 +52,14 @@ public class ManagerAgent extends Agent
         }
         catch (Exception e){}
 
-        System.out.println("ManagerAgent " + getAID().getName() + " has menu " + Menus.Cuisines.get("turkish")[0][0]);
+//        System.out.println("ManagerAgent " + getAID().getName() + " has menu " + Restaurant.Menus.get("turkish")[0][0]);
 
         addBehaviour(waitForQueries);
     };
 
-    Behaviour waitForQueries = new CyclicBehaviour(this) {
+    Behaviour waitForQueries = new TickerBehaviour(this, 1000) {
         @Override
-        public void action() {
+        public void onTick() {
             System.out.println("[ManagerAgent] " + getAID().getLocalName() + " is waiting for reservation request.");
 
             ACLMessage rcv = receive();
@@ -48,14 +69,34 @@ public class ManagerAgent extends Agent
                 switch(rcv.getPerformative())
                 {
                     case ACLMessage.QUERY_IF:
-                        ReservationTemplate rt = null;
+                        ReservationTemplate reservationDetails = null;
+
                         try {
-                            rt = (ReservationTemplate)rcv.getContentObject();
+                            reservationDetails = (ReservationTemplate)rcv.getContentObject();
                         } catch (UnreadableException e) {
                             e.printStackTrace();
                         }
 
-                        System.out.println("[ManagerAgent] " + getAID().getLocalName() + " received query: \n" + rt);
+                        System.out.println("[ManagerAgent] " + getAID().getLocalName() + " received query: " + reservationDetails);
+
+                        // check if all dishes are served
+                        boolean allDishesPresent = true;
+                        var menu = Arrays.stream((Restaurant.Menus.get(restaurantCuisine)[restaurantMenu])).toList(); //  list of dishes served at the restaurant
+
+                        System.out.println("[ManagerAgent] " + getAID().getLocalName() + " MENU:"  + menu);
+
+                        for (String dish : reservationDetails.Dishes)
+                        {
+                            if (!menu.contains(dish))
+                            {
+                                System.out.println("[ManagerAgent] " + getAID().getLocalName() + " "  + dish + " is not served here");
+                            }
+                        }
+
+
+
+
+
 
 //                        if(rcv.getOntology().equals("Play-Ontology"))
 //                        {
@@ -69,9 +110,6 @@ public class ManagerAgent extends Agent
 //                        }
                 }
             }
-
-            block(1000);
-
         }
     };
 

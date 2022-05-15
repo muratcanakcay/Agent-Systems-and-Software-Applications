@@ -49,17 +49,18 @@ public class GatewayAgent extends Agent
         //@Override
         protected ACLMessage prepareResponse(ACLMessage proposal)
         {
-            ReservationTemplate rt = null;
+            ReservationTemplate reservationDetails = null;
+
             try {
-                rt = (ReservationTemplate)proposal.getContentObject();
+                reservationDetails = (ReservationTemplate)proposal.getContentObject();
             } catch (UnreadableException e) {
                 e.printStackTrace();
             }
 
-            System.out.println("[GatewayAgent] " + getAID().getName() + " received proposal: " + rt);
+            System.out.println("[GatewayAgent] " + getAID().getName() + " received proposal: " + reservationDetails);
 
             try {
-                sendQueryToManager(rt);
+                sendQueryToManager(reservationDetails);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -76,13 +77,13 @@ public class GatewayAgent extends Agent
         }
     };
 
-    void sendQueryToManager(Serializable reservationQuery) throws IOException {
+    void sendQueryToManager(Serializable reservationDetails) throws IOException {
         ACLMessage msg = new ACLMessage(ACLMessage.QUERY_IF);
         msg.addReceiver(myManagerAgent);
         msg.setLanguage("English");
         msg.setOntology("Answer-Ontology");
-        msg.setContentObject(reservationQuery);
-        System.out.println("[GatewayAgent] " + getAID().getLocalName() + " is sending query to its manager: " + reservationQuery);
+        msg.setContentObject(reservationDetails);
+        System.out.println("[GatewayAgent] " + getAID().getLocalName() + " is sending query to its manager: " + reservationDetails);
 
         send(msg);
     }

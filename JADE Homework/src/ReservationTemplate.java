@@ -1,6 +1,7 @@
 import java.io.Serializable;
 import java.util.Arrays;
 
+// used for making a reservation at a restaurant
 public class ReservationTemplate implements Serializable
 {
     public String[] Dishes;

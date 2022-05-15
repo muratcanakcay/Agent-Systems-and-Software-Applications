@@ -18,6 +18,7 @@ public class ClientAgent extends Agent
 {
     public List<AID> gatewayAgents = new ArrayList<AID>();
     public String desiredCuisine;
+    public ReservationTemplate reservationToMake = new ReservationTemplate(new String[]{"kebap", "bezelye"}, 2, 1715);
 
 
     @Override
@@ -78,7 +79,7 @@ public class ClientAgent extends Agent
             }
             //cfp.setContent("kebap"); // sending reservation proposal for a specific dish, number of people and specified time
             try {
-                cfp.setContentObject(new ReservationTemplate(new String[]{"kebap"}, 1, 1715));
+                cfp.setContentObject(reservationToMake);
             } catch (IOException e) {
                 e.printStackTrace();
             }

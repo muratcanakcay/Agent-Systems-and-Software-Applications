@@ -7,7 +7,11 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.lang.acl.UnreadableException;
 import jade.proto.ProposeResponder;
+
+import java.io.IOException;
+import java.io.Serializable;
 
 public class GatewayAgent extends Agent
 {
@@ -43,10 +47,23 @@ public class GatewayAgent extends Agent
 
     Behaviour respondCfp = new ProposeResponder(this, MessageTemplate.MatchAll()) {
         //@Override
-        protected ACLMessage prepareResponse(ACLMessage propose)
+        protected ACLMessage prepareResponse(ACLMessage proposal)
         {
-            System.out.println("[GatewayAgent] " + getAID().getName() + " received proposal: " + propose.getContent());
-            sendQueryToManager(propose.getContent());
+            ReservationTemplate rt = null;
+            try {
+                rt = (ReservationTemplate)proposal.getContentObject();
+            } catch (UnreadableException e) {
+                e.printStackTrace();
+            }
+
+            System.out.println("[GatewayAgent] " + getAID().getName() + " received proposal: " + rt);
+
+            try {
+                sendQueryToManager(rt);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
             System.out.println("[GatewayAgent] " + getAID().getName() + " sent query to its manager");
 
 
@@ -59,14 +76,13 @@ public class GatewayAgent extends Agent
         }
     };
 
-    void sendQueryToManager(String content)
-    {
+    void sendQueryToManager(Serializable reservationQuery) throws IOException {
         ACLMessage msg = new ACLMessage(ACLMessage.QUERY_IF);
         msg.addReceiver(myManagerAgent);
         msg.setLanguage("English");
         msg.setOntology("Answer-Ontology");
-        msg.setContent(content);
-        System.out.println("[GatewayAgent] " + getAID().getLocalName() + " is sending query to manager: " + content);
+        msg.setContentObject(reservationQuery);
+        System.out.println("[GatewayAgent] " + getAID().getLocalName() + " is sending query to its manager: " + reservationQuery);
 
         send(msg);
     }

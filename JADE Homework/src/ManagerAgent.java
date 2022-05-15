@@ -3,6 +3,7 @@ import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.UnreadableException;
 import jade.wrapper.AgentContainer;
 import jade.wrapper.AgentController;
 
@@ -47,7 +48,14 @@ public class ManagerAgent extends Agent
                 switch(rcv.getPerformative())
                 {
                     case ACLMessage.QUERY_IF:
-                        System.out.println("[ManagerAgent] " + getAID().getLocalName() + " received query: " + rcv.getContent());
+                        ReservationTemplate rt = null;
+                        try {
+                            rt = (ReservationTemplate)rcv.getContentObject();
+                        } catch (UnreadableException e) {
+                            e.printStackTrace();
+                        }
+
+                        System.out.println("[ManagerAgent] " + getAID().getLocalName() + " received query: \n" + rt);
 
 //                        if(rcv.getOntology().equals("Play-Ontology"))
 //                        {

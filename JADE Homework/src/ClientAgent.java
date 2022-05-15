@@ -10,6 +10,7 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -75,14 +76,14 @@ public class ClientAgent extends Agent
             for (AID gatewayAgent : gatewayAgents) {
                 cfp.addReceiver(gatewayAgent);
             }
-            cfp.setContent("kebap");
+            //cfp.setContent("kebap"); // sending reservation proposal for a specific dish, number of people and specified time
+            try {
+                cfp.setContentObject(new ReservationTemplate(new String[]{"kebap"}, 1, 1715));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             myAgent.send(cfp);
             System.out.println("[ClientAgent] sent proposals");
-
-            block(2000);
-
-            myAgent.send(cfp);
-            System.out.println("[ClientAgent] sent proposals again");
 
 
 

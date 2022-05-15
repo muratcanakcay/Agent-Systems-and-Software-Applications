@@ -1,0 +1,15 @@
+We assume that there is a customer in the system, represented by ClientAgent agent, who wants to order take-out food from a restaurant. In the system, there are many restaurants that offer their services (they advertise them in the Directory Facilitator; DF agent). Each restaurant is represented (for "external communication") by a GatewayAgent agent. 
+
+In addition, in each restaurant, there is a ManagerAgent agent, known only to the GatewayAgent, which is responsible for the management of the restaurant (it knows what dishes and when can be prepared). 
+
+Restaurants inform (as part of DF) what types of cuisine they offer (e.g., French, Polish, Spanish, Japanese). 
+
+In the first step, the ClientAgent asks the DF agent for a list of restaurants serving dishes of the selected cuisine (e.g., Basque cuisine). If there is no restaurant with the selected type of cuisine, they receive a negative answer. 
+
+If there are such restaurants, it receives (from DF) a list of GatewayAgent agents with which it can communicate in order to place an order. 
+
+ClientAgent sends CallForProposal to these agents, with a request for specific dishes, for a specified number of people, for a specified time. GatewayAgent queries the ManagerAgent about the possibility of accepting the received order. 
+
+ManagerAgent responds yes (and gives the cost of executing such an order) or no (according to the rule invented by you). 
+
+ClientAgent selects the restaurant (randomly or according to your own rule) and the final phase of the CallforProposals follows – as defined under the FIPA standard.

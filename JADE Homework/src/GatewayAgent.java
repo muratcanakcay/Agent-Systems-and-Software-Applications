@@ -41,8 +41,6 @@ public class GatewayAgent extends Agent
         }
 
         addBehaviour(respondCfp);
-
-
     };
 
     Behaviour respondCfp = new ProposeResponder(this, MessageTemplate.MatchAll()) {
@@ -67,13 +65,46 @@ public class GatewayAgent extends Agent
 
             System.out.println("[GatewayAgent] " + getAID().getName() + " sent query to its manager");
 
+            ACLMessage rcv = blockingReceive(5000);
+            System.out.println("[GatewayAgent] " + getAID().getName() + " waiting for reply from its manager");
 
+            if (rcv != null)
+            {
+                switch (rcv.getPerformative())
+                {
+                    case ACLMessage.INFORM:
+                        System.out.println("[GatewayAgent] " + getAID().getLocalName() + " received query response: " + rcv.getContent());
+                }
+            }
 
+            if (rcv == null || rcv.getContent().equals("0.0"))
+            {
+                ProposalReply replyContent = new ProposalReply("This restaurant will not be able to fullfill your reservation request.", 0.0);
+                ACLMessage negativeReply = proposal.createReply();
+                negativeReply.setPerformative(ACLMessage.REJECT_PROPOSAL);
 
+                try {
+                    negativeReply.setContentObject(replyContent);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
+                return negativeReply;
+            }
+            else
+            {
+                ProposalReply replyContent = new ProposalReply("This restaurant can fullfill your reservation request.", Double.parseDouble(rcv.getContent()));
+                ACLMessage positiveReply = proposal.createReply();
+                positiveReply.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
 
+                try {
+                    positiveReply.setContentObject(replyContent);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
-            return null;
+                return positiveReply;
+            }
         }
     };
 

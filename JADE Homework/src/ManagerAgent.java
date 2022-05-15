@@ -16,7 +16,7 @@ public class ManagerAgent extends Agent
     String restaurantCuisine = null; // cuisine of the restaurant
     Integer restaurantMenu = null; // menu of the restaurant
     Integer restaurantWorkingHours = null; // working hours of the restaurant
-    Float restaurantPriceMultiplier = null; // price multiplier of the restaurant
+    Double restaurantPriceMultiplier = null; // price multiplier of the restaurant
     @Override
     protected void setup() {
         Object[] args = getArguments();
@@ -29,7 +29,7 @@ public class ManagerAgent extends Agent
         restaurantCuisine = (String)args[1]; // cuisine of the restaurant
         restaurantMenu = Integer.parseInt((String)args[2]); // menu of the restaurant
         restaurantWorkingHours = Integer.parseInt((String)args[3]); // working hours of the restaurant
-        restaurantPriceMultiplier = Float.parseFloat((String)args[4]); // price multiplier of the restaurant
+        restaurantPriceMultiplier = Double.parseDouble((String)args[4]); // price multiplier of the restaurant
 
         if (restaurantName == null || restaurantCuisine  == null || restaurantMenu == null || restaurantWorkingHours == null || restaurantPriceMultiplier <= 0)
         {
@@ -77,37 +77,31 @@ public class ManagerAgent extends Agent
                             e.printStackTrace();
                         }
 
+                        assert reservationDetails != null;
+
                         System.out.println("[ManagerAgent] " + getAID().getLocalName() + " received query: " + reservationDetails);
 
-                        // check if all dishes are served
-                        boolean allDishesPresent = true;
-                        var menu = Arrays.stream((Restaurant.Menus.get(restaurantCuisine)[restaurantMenu])).toList(); //  list of dishes served at the restaurant
+                        // check if all requested dishes are served
+                        boolean allDishesPresent = checkDishes(restaurantCuisine, restaurantMenu, reservationDetails.Dishes);
+                        // check if restaurant is open at requested time
+                        boolean restaurantOpen = checkRestaurantWorking(restaurantWorkingHours, reservationDetails.time);
+                        System.out.println("[ManagerAgent] " + getAID().getLocalName() + " reservationTime is within WORKINGHOURS: "  + restaurantOpen);
 
-                        System.out.println("[ManagerAgent] " + getAID().getLocalName() + " MENU:"  + menu);
-
-                        for (String dish : reservationDetails.Dishes)
+                        if (!allDishesPresent || !restaurantOpen)  // reply negative with cost=0.0
                         {
-                            if (!menu.contains(dish))
-                            {
-                                System.out.println("[ManagerAgent] " + getAID().getLocalName() + " "  + dish + " is not served here");
-                            }
+                           ACLMessage reply = rcv.createReply();
+                           reply.setPerformative(ACLMessage.INFORM);
+                           reply.setContent("0.0");
+                           send(reply);
                         }
-
-
-
-
-
-
-//                        if(rcv.getOntology().equals("Play-Ontology"))
-//                        {
-//                            String result = play();
-//                            sendResult(result);
-//                        }
-//                        break;
-//                    case ACLMessage.INFORM:
-//                        if (rcv.getOntology() == "Game-Over-Ontology") {
-//                            doDelete();
-//                        }
+                        else // reply positive with the cost of the dishes
+                        {
+                            Double cost = calculateCost(reservationDetails.Dishes, restaurantPriceMultiplier);
+                            ACLMessage reply = rcv.createReply();
+                            reply.setPerformative(ACLMessage.INFORM);
+                            reply.setContent(String.valueOf(cost));
+                            send(reply);
+                        }
                 }
             }
         }
@@ -123,6 +117,53 @@ public class ManagerAgent extends Agent
         System.out.println(getAID().getLocalName() + " is sending answer: " + answer);
 
         send(msg);
+    }
+
+    Double calculateCost(String[] dishes, Double restaurantPriceMultiplier)
+    {
+        Double sum = 0.0;
+        for(String dish : dishes)
+        {
+            sum += Restaurant.Prices.get(dish);
+        }
+
+        sum *= restaurantPriceMultiplier;
+
+        System.out.println("[ManagerAgent] " + getAID().getLocalName() + " calculated cost is: "  + sum);
+
+        return sum;
+    }
+
+    boolean checkRestaurantWorking(Integer restaurantWorkingHours, Integer requestedTime)
+    {
+        var openingHour = Restaurant.WorkingHours[restaurantWorkingHours][0];
+        var closingHour = Restaurant.WorkingHours[restaurantWorkingHours][1];
+
+        System.out.println("[ManagerAgent] " + getAID().getLocalName() + "Checking if " + requestedTime + " is within WORKINGHOURS: "  + openingHour + "-" + closingHour);
+        if (closingHour > openingHour)
+        {
+            return (requestedTime>=openingHour && requestedTime<=closingHour);
+        }
+        else
+        {
+            return ((requestedTime>=openingHour && requestedTime<=2359) || (requestedTime>=0 && requestedTime<=closingHour));
+        }
+    }
+
+    boolean checkDishes(String restaurantCuisine, Integer restaurantMenu, String[] requestedDishes)
+    {
+        var menu = Arrays.stream((Restaurant.Menus.get(restaurantCuisine)[restaurantMenu])).toList(); //  list of dishes served at the restaurant
+
+        System.out.println("[ManagerAgent] " + getAID().getLocalName() + " MENU:"  + menu);
+        for (String dish : requestedDishes)
+        {
+            if (!menu.contains(dish))
+            {
+                System.out.println("[ManagerAgent] " + getAID().getLocalName() + " "  + dish + " is not served here");
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override

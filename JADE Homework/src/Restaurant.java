@@ -16,11 +16,11 @@ public class Restaurant {
 
     // -------------- PRICES
 
-    public static HashMap<String, Integer> Prices = new HashMap<String, Integer>() {
+    public static HashMap<String, Double> Prices = new HashMap<String, Double>() {
         {
-            put("kebap", 10);
-            put("bezelye", 6);
-            put("fasulye", 6);
+            put("kebap", 10.0);
+            put("bezelye", 6.0);
+            put("fasulye", 6.0);
 
 
 
@@ -30,7 +30,7 @@ public class Restaurant {
     // ------------- WORKING HOURS
 
     private static Integer[] workingHours0 = {1000, 1715};
-    private static Integer[] workingHours1 = {1300, 2000};
+    private static Integer[] workingHours1 = {1800, 2000};
     private static Integer[] workingHours2 = {1300, 2300};
 
     public static Integer[][] WorkingHours =  {

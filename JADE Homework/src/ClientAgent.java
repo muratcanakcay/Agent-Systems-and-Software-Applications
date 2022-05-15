@@ -9,6 +9,7 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
+import jade.proto.ProposeInitiator;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -18,7 +19,7 @@ public class ClientAgent extends Agent
 {
     public List<AID> gatewayAgents = new ArrayList<AID>();
     public String desiredCuisine;
-    public ReservationTemplate reservationToMake = new ReservationTemplate(new String[]{"kebap", "bezelye"}, 2, 1715);
+    public ReservationTemplate reservationToMake = new ReservationTemplate(new String[]{"kebap", "fasulye"}, 2, 1715);
 
 
     @Override
@@ -26,7 +27,7 @@ public class ClientAgent extends Agent
         Object[] args = getArguments();
         desiredCuisine = (String)args[0]; // cuisine of the restaurant - received from ManagerAgent during creation
 
-        System.out.println("ClientAgent " + getAID().getName() + " desiredCuisine: " + desiredCuisine);
+        System.out.println("[ClientAgent] " + getAID().getName() + " desiredCuisine: " + desiredCuisine);
 
         addBehaviour(queryGateways);
     };
@@ -52,7 +53,7 @@ public class ClientAgent extends Agent
                 fe.printStackTrace();
             }
 
-            System.out.println("Client received info about GatewayAgents:");
+            System.out.println("[ClientAgent] received info about GatewayAgents:");
             for (AID gatewayAgent : gatewayAgents) {
                 System.out.println("      " + gatewayAgent);
             }
@@ -74,31 +75,23 @@ public class ClientAgent extends Agent
         public void action() {
 
             ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
+
             for (AID gatewayAgent : gatewayAgents) {
                 cfp.addReceiver(gatewayAgent);
             }
-            //cfp.setContent("kebap"); // sending reservation proposal for a specific dish, number of people and specified time
+
             try {
                 cfp.setContentObject(reservationToMake);
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
+//            addBehaviour(new ProposeInitiator(this, cfp));
+
             myAgent.send(cfp);
             System.out.println("[ClientAgent] sent proposals");
-
-
-
-//            ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-//            msg.addReceiver(new AID("Referee", AID.ISLOCALNAME));
-//            msg.setLanguage("English");
-//            msg.setOntology("Ready-to-Play-Ontology");
-//            msg.setContent(getAID().getLocalName()+ " is ready to play!");
-//            System.out.println(getAID().getLocalName() + " is sending 'I'm ready to play' message!");
-//
-//            send(msg);
         }
     };
-
 
 
     @Override

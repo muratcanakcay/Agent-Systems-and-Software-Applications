@@ -1,50 +1,43 @@
 import jade.core.Agent;
-import jade.domain.DFService;
-import jade.domain.FIPAAgentManagement.DFAgentDescription;
-import jade.domain.FIPAAgentManagement.ServiceDescription;
-import jade.domain.FIPAException;
+import jade.wrapper.AgentContainer;
+import jade.wrapper.AgentController;
 
 public class ManagerAgent extends Agent
 {
     @Override
     protected void setup() {
         Object[] args = getArguments();
-        String arg1 = (String)args[0]; // this returns the arg1
-        String arg2 = (String)args[1]; // this returns the arg2
+        String arg1 = (String)args[0]; // name of the restaurant
+        String arg2 = (String)args[1]; // cuisine of the restaurant
+        String arg3 = (String)args[2]; // menu of the restaurant
 
-        System.out.println("Manager-agent " + getAID().getName() + " started with arguments " + arg1 + " " + arg2);
+        System.out.println("Manager-agent " + getAID().getName() + " started with arguments " + arg1 + " " + arg2 + " " + arg3);
 
-        
+        // create the gateway agent
+        jade.core.Runtime runtime = jade.core.Runtime.instance();
 
-
-
-        DFAgentDescription dfd = new DFAgentDescription();
-        dfd.setName(getAID());
-        ServiceDescription sd = new ServiceDescription();
-        sd.setType("restaurant");
-        sd.setName(arg2);
-        dfd.addServices(sd);
+        Object[] gatewayArgs = new Object[1];
+        gatewayArgs[0] = arg2; // cuisine of the restaurant  - to be passed to gatewayAgent
+        AgentContainer ac = getContainerController();
         try {
-            DFService.register(this, dfd);
-        } catch (FIPAException fe) {
-            fe.printStackTrace();
+            AgentController gateway = ac.createNewAgent(arg1+"Gateway", "GatewayAgent", gatewayArgs);
+            gateway.start();
         }
+        catch (Exception e){}
+
+
+
+
+
+
     };
 
     @Override
     protected void takeDown()
     {
-        // Deregister from the yellow pages
-        try {
-            DFService.deregister(this);
-        }
-        catch (FIPAException fe) {
-            fe.printStackTrace();
-        }
-
         // Close the GUI
         // myGui.dispose();
         // Printout a dismissal message
-        System.out.println("Seller-agent " + getAID().getName() + " terminating.");
+        System.out.println("ManagerAgent " + getAID().getName() + " terminating.");
     }
 }

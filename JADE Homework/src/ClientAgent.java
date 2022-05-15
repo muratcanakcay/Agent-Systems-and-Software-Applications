@@ -25,6 +25,8 @@ public class ClientAgent extends Agent
                     AID[] tempAgents = new AID[result.length];
                     for (int i = 0; i < result.length; ++i) {
                         tempAgents[i] = result[i].getName();
+                        System.out.println("Client received info about " + result[i].getName());
+
                     }
                 }
                 catch (FIPAException fe) {

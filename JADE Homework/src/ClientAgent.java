@@ -9,25 +9,30 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.UnreadableException;
 import jade.proto.ProposeInitiator;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 
 public class ClientAgent extends Agent
 {
+    // YOU CAN SET THE RESERVATION DETAILS HERE:
+    public ReservationTemplate reservationToMake = new ReservationTemplate("turkish", new String[]{"kebap", "fasulye"}, 2, 1715);
+
+
     public List<AID> gatewayAgents = new ArrayList<AID>();
-    public String desiredCuisine;
-    public ReservationTemplate reservationToMake = new ReservationTemplate(new String[]{"kebap", "fasulye"}, 2, 1715);
+    public HashMap<String, Double> positiveResponses= new HashMap<String, Double>();
 
 
     @Override
     protected void setup() {
         Object[] args = getArguments();
-        desiredCuisine = (String)args[0]; // cuisine of the restaurant - received from ManagerAgent during creation
 
-        System.out.println("[ClientAgent] " + getAID().getName() + " desiredCuisine: " + desiredCuisine);
+        System.out.println("[ClientAgent] " + getAID().getName() + " desiredCuisine: " + reservationToMake.cuisine);
 
         addBehaviour(queryGateways);
     };
@@ -40,7 +45,7 @@ public class ClientAgent extends Agent
             ServiceDescription sd = new ServiceDescription();
 
             sd.setType("restaurant");
-            sd.setName(desiredCuisine);
+            sd.setName(reservationToMake.cuisine);
             template.addServices(sd);
 
             try {
@@ -60,39 +65,96 @@ public class ClientAgent extends Agent
 
             if (gatewayAgents.size() == 0)
             {
-                System.out.println("[ClientAgent] Unfortunately no restaurants are available with the desired cuisine : \"" + desiredCuisine + "\"");
+                System.out.println("[ClientAgent] Unfortunately no restaurants are available with the desired cuisine : \"" + reservationToMake.cuisine + "\"");
                 System.out.println("[ClientAgent] Stopping...");
                 myAgent.doDelete();
             }
 
-            // Perform the request
-            myAgent.addBehaviour(sendCfp);
+            // Perform the Call for Proposal to the Gateway Agents
+            sendCFP();
         }
     };
 
-    Behaviour sendCfp = new OneShotBehaviour(this) {
-        @Override
-        public void action() {
+    public void sendCFP()
+    {
+        ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
 
-            ACLMessage cfp = new ACLMessage(ACLMessage.CFP);
-
-            for (AID gatewayAgent : gatewayAgents) {
-                cfp.addReceiver(gatewayAgent);
-            }
-
-            try {
-                cfp.setContentObject(reservationToMake);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-//            addBehaviour(new ProposeInitiator(this, cfp));
-
-            myAgent.send(cfp);
-            System.out.println("[ClientAgent] sent proposals");
+        for (AID gatewayAgent : gatewayAgents) {
+            cfp.addReceiver(gatewayAgent);
         }
-    };
 
+        try {
+            cfp.setContentObject(reservationToMake);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        addBehaviour(new ProposeInitiator(this, cfp)
+        {
+            protected void handleAcceptProposal(ACLMessage accept_proposal)
+            {
+                ProposalReply reply = null;
+
+                try {
+                    reply = (ProposalReply) accept_proposal.getContentObject();
+                } catch (UnreadableException e) {
+                    e.printStackTrace();
+                }
+
+                System.out.println("[ClientAgent] Received positive reply from " + accept_proposal.getSender().getName() + " : " +
+                    reply.explanation + " " + "Cost will be: " + reply.cost);
+
+                positiveResponses.put(accept_proposal.getSender().getName(), reply.cost);
+            };
+
+            protected void handleRejectProposal(ACLMessage reject_proposal)
+            {
+                ProposalReply reply = null;
+
+                try {
+                    reply = (ProposalReply) reject_proposal.getContentObject();
+                } catch (UnreadableException e) {
+                    e.printStackTrace();
+                }
+
+                System.out.println("[ClientAgent] Received negative reply from " + reject_proposal.getSender().getName() + " : " +
+                        reply.explanation + " " + "Cost will be: " + reply.cost);
+            };
+
+            protected void handleAllResponses(java.util.Vector responses)
+            {
+                removeBehaviour(this);
+                makeDecision();
+            }
+        });
+    }
+
+    public void makeDecision()
+    {
+        System.out.println("[ClientAgent] Number of positive responses :" + positiveResponses.size());
+
+
+
+        if (positiveResponses.size() == 1)
+        {
+            Object firstKey = positiveResponses.keySet().toArray()[0];
+            Object valueForFirstKey = positiveResponses.get(firstKey);
+            System.out.println("[ClientAgent] There was only 1 positive response so I choose it:");
+            System.out.println("[ClientAgent] " + firstKey + ", and the cost is " + valueForFirstKey);
+        }
+        else
+        {
+            Object[] keys = positiveResponses.keySet().toArray();
+            System.out.println("[ClientAgent] There were " + positiveResponses.size() + " positive response so I choose randombly:");
+
+            Random rng = new Random();
+            int choice = rng.nextInt(positiveResponses.size());
+            Object chosenKey = positiveResponses.keySet().toArray()[choice];
+            Object valueForChoice = positiveResponses.get(chosenKey);
+
+            System.out.println("[ClientAgent] " + chosenKey + ", and the cost is " + valueForChoice);
+        }
+    }
 
     @Override
     protected void takeDown()

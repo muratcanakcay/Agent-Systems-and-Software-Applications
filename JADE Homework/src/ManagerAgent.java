@@ -60,7 +60,7 @@ public class ManagerAgent extends Agent
     Behaviour waitForQueries = new TickerBehaviour(this, 1000) {
         @Override
         public void onTick() {
-            System.out.println("[ManagerAgent] " + getAID().getLocalName() + " is waiting for reservation request.");
+//            System.out.println("[ManagerAgent] " + getAID().getLocalName() + " is waiting for reservation request.");
 
             ACLMessage rcv = receive();
 

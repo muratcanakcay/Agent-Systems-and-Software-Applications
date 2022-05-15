@@ -21,8 +21,12 @@ import java.util.Random;
 public class ClientAgent extends Agent
 {
     // YOU CAN SET THE RESERVATION DETAILS HERE:
-    public ReservationTemplate reservationToMake = new ReservationTemplate("turkish", new String[]{"kebap", "fasulye"}, 2, 1715);
-
+//    public ReservationTemplate reservationToMake = new ReservationTemplate("turkish", new String[]{"kebap", "fasulye"}, 2, 1715);
+    public ReservationTemplate reservationToMake = null;
+    public String desiredCuisine;
+    public Integer noOfPeople;
+    public Integer  desiredTime;
+    public String[] desiredDishes = null;
 
     public List<AID> gatewayAgents = new ArrayList<AID>();
     public HashMap<String, Double> positiveResponses= new HashMap<String, Double>();
@@ -31,6 +35,18 @@ public class ClientAgent extends Agent
     @Override
     protected void setup() {
         Object[] args = getArguments();
+        desiredCuisine = (String)args[0];
+        noOfPeople = Integer.parseInt((String)args[1]);
+        desiredTime = Integer.parseInt((String)args[2]);
+
+        desiredDishes = new String[args.length-3];
+
+        for (int i = 3; i < args.length; i++)
+        {
+            desiredDishes[i-3] = (String)args[i];
+        }
+
+        reservationToMake = new ReservationTemplate(desiredCuisine, desiredDishes, noOfPeople, desiredTime);
 
         System.out.println("[ClientAgent] " + getAID().getName() + " desiredCuisine: " + reservationToMake.cuisine);
 
@@ -145,7 +161,7 @@ public class ClientAgent extends Agent
         else
         {
             Object[] keys = positiveResponses.keySet().toArray();
-            System.out.println("[ClientAgent] There were " + positiveResponses.size() + " positive response so I choose randombly:");
+            System.out.println("[ClientAgent] There were " + positiveResponses.size() + " positive response so I choose randomly:");
 
             Random rng = new Random();
             int choice = rng.nextInt(positiveResponses.size());

@@ -9,16 +9,17 @@ public class GatewayAgent extends Agent
     @Override
     protected void setup() {
         Object[] args = getArguments();
-        String arg1 = (String)args[0]; // this returns the arg1
+        String cuisine = (String)args[0]; // cuisine of the restaurant - received from ManagerAgent during creation
 
-        System.out.println("Gateway-agent " + getAID().getName() + " started with arguments " + arg1);
+        System.out.println("GatewayAgent " + getAID().getName() + " started with arguments " + cuisine);
 
-
+        // the Agent registers itself to DF
         DFAgentDescription dfd = new DFAgentDescription();
         dfd.setName(getAID());
+
         ServiceDescription sd = new ServiceDescription();
         sd.setType("restaurant");
-        sd.setName(arg1);
+        sd.setName(cuisine); // cuisine of the restaurant
         dfd.addServices(sd);
         try {
             DFService.register(this, dfd);

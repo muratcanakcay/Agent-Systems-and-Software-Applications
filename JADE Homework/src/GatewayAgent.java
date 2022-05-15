@@ -1,9 +1,8 @@
+import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
-import jade.domain.FIPAAgentManagement.NotUnderstoodException;
-import jade.domain.FIPAAgentManagement.RefuseException;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
@@ -12,12 +11,16 @@ import jade.proto.ProposeResponder;
 
 public class GatewayAgent extends Agent
 {
+    AID myManagerAgent;
     @Override
     protected void setup() {
         Object[] args = getArguments();
         String cuisine = (String)args[0]; // cuisine of the restaurant - received from ManagerAgent during creation
+        myManagerAgent = (AID)args[1];
 
-        System.out.println("GatewayAgent " + getAID().getName() + " started with arguments " + cuisine);
+        System.out.println("[GatewayAgent] " + getAID().getName() + " started with:\n       Cuisine: " + cuisine + "\n" +
+                "       ManagerAgent:  " + myManagerAgent);
+
 
         // the Agent registers itself to DF
         DFAgentDescription dfd = new DFAgentDescription();
@@ -42,24 +45,31 @@ public class GatewayAgent extends Agent
         //@Override
         protected ACLMessage prepareResponse(ACLMessage propose)
         {
-            System.out.println("[GatewayAgent] " + getAID().getName() + " received proposal ");
-            return null;
+            System.out.println("[GatewayAgent] " + getAID().getName() + " received proposal: " + propose.getContent());
+            sendQueryToManager(propose.getContent());
+            System.out.println("[GatewayAgent] " + getAID().getName() + " sent query to its manager");
 
-//            switch (mood) {
-//                case HAPPY:
-//                    log("I'm happy");
-//                    ACLMessage accept = propose.createReply();
-//                    accept.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
-//                    accept.setContent("Yes, it would be nice");
-//                    return accept;
-//                case DISTRACTED:
-//                    log("I'm hurt");
-//                    throw new NotUnderstoodException("I didn't understand you");
-//                default:
-//                    return null;
-//            }
+
+
+
+
+
+
+            return null;
         }
     };
+
+    void sendQueryToManager(String content)
+    {
+        ACLMessage msg = new ACLMessage(ACLMessage.QUERY_IF);
+        msg.addReceiver(myManagerAgent);
+        msg.setLanguage("English");
+        msg.setOntology("Answer-Ontology");
+        msg.setContent(content);
+        System.out.println("[GatewayAgent] " + getAID().getLocalName() + " is sending query to manager: " + content);
+
+        send(msg);
+    }
 
     @Override
     protected void takeDown()

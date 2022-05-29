@@ -1,0 +1,16 @@
+Instructions
+
+The goal of this homework to implement an agent-based mini-system that explores features of the osBrain platform.
+
+Speed dating simulation
+
+There are 2 types of agents: initiators (which start conversation) and responders (which wait for the message and reply).
+The number of initiators and responders is equal and it should be a parameter of the simulation.
+There is also the organizer agent who assigns initiators their interlocutors.
+At the beginning (and every n seconds) the organizer assigns each initiator their new interlocutor (the responders are passiv and only respond to messages).
+The conversation is a simple message exchange (e.g. "Hey, do you like X?" - "Yes."/"No.").
+The initiator asks one question per round and chooses a random interest from its list.
+Each initiator and responder has x interests assigned randomly from a fixed list, e.g. "sports", "traveling", "agent systems".
+After any initiator gets a confirmation message, they send a message to the organizer who shuts down everything announcing the first agents who matched (the shutdown mechanism can also be implemented differently as long as it is "graceful").
+The organizer does not wait for the confirmations of match/no match from agents.
+It assigns new interlocutor every n seconds.
